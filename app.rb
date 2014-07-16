@@ -140,22 +140,27 @@ helpers do
         options = max_id ? default_options.merge({ max_id: max_id }) : default_options
 
         data = client.favorites(settings.twitter["user"]["screen-name"], options)
-        p data
+        p "get favorites : #{data}"
       rescue Twitter::Error::TooManyRequests => e
         error << "TooManyRequests"
+        p "error : #{e}"
         p e.backtrace.join["\n"]
+        break
+      rescue => e
+        error << e
+        p "error : #{e}"
         break
       end
 
-      data.each do |entity|
-        result << entity if entity.media?
+      if data.empty?
+        error << 'NoMoreFavorites'
+        break
+      else
+        data.each do |entity|
+          result << entity if entity.media?
+        end
+        max_id = data.last.id - 1
       end
-
-      max_id = if data.empty?
-                 max_id - 1
-               else
-                 data.last.id - 1
-               end
     end
 
     return { data: result, max_id: max_id, error: error.uniq.compact }

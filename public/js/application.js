@@ -110,9 +110,13 @@
 			} else {
 				self.max_id = json.max_id;
 			}
+			if (json.error.length > 0) {
+				alert('画像を取得出来ませんでした : \n' + json.error.join('\n'));
+			}
 		},
 
 		error: function() {
+			alert('エラーが発生しました');
 		},
 
 		dummySrc: 'data:image/gif;,',
