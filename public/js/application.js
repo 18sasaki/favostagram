@@ -94,11 +94,13 @@
 			var df = document.createDocumentFragment(),
 			    i = 0, length = json.urls.length, data, listNode;
 			while (i < length) {
-				url = json.urls[i++];
+				url = json.urls[i];
+				title = json.titles[i];
+				i++
 				listNode = document.createElement('li');
 				listNode.innerHTML = [
-					'<a href="'+ url +'">',
-						'<img src="'+ url +'" data-src="'+ url +'" alt="">',
+					'<a href="' + url + '">',
+						'<img src="' + url + '" data-src="' + url + '" alt="' + url + '" title="' + title + '">',
 					'</a>'
 				].join('');
 				df.appendChild(listNode);
@@ -110,7 +112,7 @@
 			} else {
 				self.max_id = json.max_id;
 			}
-			if (json.error.length > 0) {
+			if (json.error) {
 				alert('画像を取得出来ませんでした : \n' + json.error.join('\n'));
 			}
 		},

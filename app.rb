@@ -33,9 +33,11 @@ get "/images" do
   result = get_favorited_images(client, count, max_id)
 
   urls = []
-  result[:data].each do |e|
-    e.media.each do |m|
-      urls << "#{m.media_url}" if m
+  titles = []
+  result[:entities].each do |entity|
+    entity.media.each do |m|
+      urls << "#{m.media_url}"
+      titles << "#{entity.user.name}\n#{entity.text}"
     end
   end
 
@@ -86,7 +88,7 @@ get "/images" do
   #        end
 
   content_type :json
-  map = { urls: urls }
+  map = { urls: urls, titles: titles }
   map[:max_id] = result[:max_id].to_s if result[:max_id]
   map[:error]  = result[:error]       if !result[:error].empty?
   map.to_json
@@ -100,25 +102,25 @@ get "/download" do
   json = {}
   json[:saved_images] = {}
   json[:existed_images] = {}
-  json[:max_id] = result[:data].last.id - 1 if !result[:data].empty?
-  result[:data].each do |e|
-    e.media.each_index do |i|
-      url = e.media[i].media_url
+  json[:max_id] = result[:entities].last.id - 1 if !result[:entities].empty?
+  result[:entities].each do |entity|
+    entity.media.each_index do |i|
+      url = entity.media[i].media_url
       idx = sprintf("%02d",i)
-      filename = "#{e.id}_#{idx}" + File.extname(url)
+      filename = "#{entity.id}_#{idx}" + File.extname(url)
       p filename
-      dirname = File.join(File.dirname(__FILE__), settings.download_dir, e.user.id.to_s)
+      dirname = File.join(File.dirname(__FILE__), settings.download_dir, entity.user.id.to_s)
       FileUtils.mkdir_p(dirname) unless FileTest.exist?(dirname)
 
       filepath = File.join(dirname, filename)
       if FileTest.exist?(filepath)
-        json[:existed_images][e.id] = filename
+        json[:existed_images][entity.id] = filename
       else
         open(File.join(dirname, filename), 'wb') do |output|
           open(url) do |d|
             output.write(d.read)
           end
-          json[:saved_images][e.id] = filename
+          json[:saved_images][entity.id] = filename
         end
       end
     end
@@ -163,7 +165,7 @@ helpers do
       end
     end
 
-    return { data: result, max_id: max_id, error: error.uniq.compact }
+    return { entities: result, max_id: max_id, error: error.uniq.compact }
   end
 
   def get_count(params)
