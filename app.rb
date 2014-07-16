@@ -20,6 +20,8 @@ before do
   end
 end
 
+MIN_COUNT = 4 #一度での画像最低取得枚数
+
 get "/" do
   erb :index
 end
@@ -132,7 +134,7 @@ helpers do
     error  = []
     default_options = { count: count }
 
-    while result.size < count
+    while result.size < MIN_COUNT
       data = []
       begin
         options = max_id ? default_options.merge({ max_id: max_id }) : default_options
